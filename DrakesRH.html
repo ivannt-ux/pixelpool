@@ -94,13 +94,15 @@ footer .w{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
 <div class="grid">
 <main>
-  <span class="tag" id="tag">Whitelist open</span>
+  <span class="tag" id="tag">Whitelist open (FCFS)</span>
   <h1 id="pname">Hood Drakes</h1>
   <p class="sub">NFT collection on Robinhood Chain</p>
 
   <p class="price" id="price" role="timer" aria-live="off">--<small>d</small>--<small>h</small>--<small>m</small>--<small>s</small></p>
-  <p class="when"><span>until entries close:</span> <b id="whenpt">Mon 9 Nov, 12:00 PM PT</b></p>
+  <p class="when"><span>until entries close:</span> <b id="whenpt">Fri 13 Nov, 12:00 PM PST</b></p>
   <p class="when"><span id="whenlocal"></span></p>
+  <p class="when" style="margin-top:16px"><span>Mint opens:</span> <b>Mon 16 Nov, 12:00 PM PST</b></p>
+  <p class="when"><span id="mintlocal"></span></p>
 
   
   <div class="proj">
@@ -153,7 +155,8 @@ footer .w{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 /* ---- CONFIG ---- */
 const SB_URL="https://gfqwxpkycwsguovdorxy.supabase.co",SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmcXd4cGt5Y3dzZ3VvdmRvcnh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NDY2NjksImV4cCI6MjEwODQyMjY2OX0.PCZKvjTo2aehO0FaMt91uHDe5HgJEwQxN_FKn8KSDnk";
 const LAUNCH = "drakesrh";                                   /* must match the Supabase policy */
-const END = new Date("2026-11-09T12:00:00-08:00").getTime();  /* 9 Nov 2026, 12:00 PM Pacific */
+const END = new Date("2026-11-13T12:00:00-08:00").getTime();   /* entries close: 13 Nov 2026, 12:00 PM PST */
+const MINT = new Date("2026-11-16T12:00:00-08:00").getTime();  /* mint: 16 Nov 2026, 12:00 PM PST */
 const PROJECT = {
  name: "Hood Drakes",
  handle: "HoodDrakes",      /* X handle without @ */
@@ -177,6 +180,8 @@ else $("b2").href = "https://x.com/" + PROJECT.handle;
 
 /* local time line */
 try{ $("whenlocal").textContent = "Your time: " + new Date(END).toLocaleString(undefined,{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit",timeZoneName:"short"}) }catch(e){}
+
+try{ $("mintlocal").textContent = "Your time: " + new Date(MINT).toLocaleString(undefined,{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit",timeZoneName:"short"}) }catch(e){}
 
 /* ---- timer ---- */
 let closed = false;
@@ -222,7 +227,8 @@ async function submit(){
    if(res.status===409) $("ok").querySelector("p").textContent = "This wallet was already on the Hood Drakes list.";
    return;
   }
-  m.textContent = (res.status===401||res.status===403) ? "Entries for this launch are closed." : "Something went wrong. Try again.";
+  if(res.status===401||res.status===403){ m.textContent = "Entries for this launch are closed." }
+  else { let why = ""; try{ const j = await res.json(); why = " " + (j.message || j.hint || "") }catch(e){} m.textContent = "Something went wrong (" + res.status + ")." + why }
  }catch(e){ m.textContent = "Network error. Check your connection and try again." }
  busy = false; $("send").disabled = false;
 }
